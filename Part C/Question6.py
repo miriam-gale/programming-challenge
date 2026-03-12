@@ -1,18 +1,17 @@
-# Question 6
-
+# Question 6 - Top 3 Shortest Paths
 
 graph = {}
 
-#  Open the file and read the data
+# Open the file and read the data
 with open("ghana_cities_graph_2026.txt", "r") as file:
     for line in file:
-        parts       = line.split(",")
-        source      = parts[0].strip()
+        parts = line.split(",")
+        source = parts[0].strip()
         destination = parts[1].strip()
-        distance    = int(parts[2].strip())
-        time        = int(parts[3].strip())
+        distance = int(parts[2].strip())
+        time = int(parts[3].strip())
 
-        #  Ceates a space for each toen if it does not exist
+        # Creates a space for each town if it does not exist
         if source not in graph:
             graph[source] = []
         if destination not in graph:
@@ -23,48 +22,53 @@ with open("ghana_cities_graph_2026.txt", "r") as file:
         graph[destination].append((source, distance, time))
 
 
-# Dijkstra using min()
+# Dijkstra - finds shortest path between two towns
 def dijkstra(start, destination):
-    # Only save this new path if a real route was found
-    # If no route exists, Dijkstra returns infinity(which means the path does not exist) so we skip it
-    distances = {town: float('inf') for town in graph}
+
+    distances = {}
+    for town in graph:
+        distances[town] = float('inf')
     distances[start] = 0
-    previous = {town: None for town in graph}
+
+    previous = {}
+    for town in graph:
+        previous[town] = None
+
     queue = [(0, start)]
 
     while queue:
-        # Pick the town with the smallest distance using min()
         current_distance, current_town = min(queue)
         queue.remove((current_distance, current_town))
 
         if current_town == destination:
             break
 
-        for neighbor, dist in graph[current_town]:
+        for neighbor, dist, time in graph[current_town]:
             new_distance = current_distance + dist
 
             if new_distance < distances[neighbor]:
                 distances[neighbor] = new_distance
-                previous[neighbor]  = current_town
+                previous[neighbor] = current_town
                 queue.append((new_distance, neighbor))
 
-    # Rebuild path
-    path    = []
+    path = []
     current = destination
-    while current is not None:
+
+    while current != None:
         path.append(current)
         current = previous[current]
-    path.reverse()
+
+    path = path[::-1]
 
     return path, distances[destination]
 
 
-# Top 3 shortest paths
+# Finds the top 3 shortest paths by temporarily removing roads
 def top_3_paths(start, destination):
 
     all_paths = []
 
-    # Get first shortest path
+    # Get the first shortest path
     path1, dist1 = dijkstra(start, destination)
     all_paths.append((dist1, path1))
 
@@ -73,13 +77,15 @@ def top_3_paths(start, destination):
         town_a = path1[i]
         town_b = path1[i + 1]
 
-        # Temporarily remove the road
+        # Temporarily remove the road between town_a and town_b
         graph[town_a] = [(n, d, t) for n, d, t in graph[town_a] if n != town_b]
         graph[town_b] = [(n, d, t) for n, d, t in graph[town_b] if n != town_a]
 
-        # Run Dijkstra without that road
+        # Run Dijkstra again without that road
         new_path, new_dist = dijkstra(start, destination)
 
+        # Only save this path if a real route was found
+        # If no route exists Dijkstra returns infinity so we skip it
         if new_dist != float('inf'):
             all_paths.append((new_dist, new_path))
 
@@ -87,25 +93,31 @@ def top_3_paths(start, destination):
         graph[town_a].append((town_b, dist1, 0))
         graph[town_b].append((town_a, dist1, 0))
 
-    # Sort by distance and remove duplicates
-    all_paths.sort(key=lambda x: x[0])
-    seen         = []
+    # Sort all paths by distance
+    def get_distance(item):
+        return item[0]
+
+    all_paths.sort(key=get_distance)
+
+    # Remove duplicate paths
+    seen = []
     unique_paths = []
     for dist, path in all_paths:
         if path not in seen:
             seen.append(path)
             unique_paths.append((dist, path))
 
-    # Print top 3
-    print("Top 3 Shortest Paths from", start, "to", destination)
-    print("-" * 50)
+    # Print the top 3
+    print("Top 3 Shortest Paths from", start_town, "to", destination_town)
+
     for rank in range(min(3, len(unique_paths))):
         dist, path = unique_paths[rank]
-        print(f"\nPath {rank + 1}:")
-        print("  Route    :", " -> ".join(path))
-        print("  Distance :", dist, "km")
+        route = " -> ".join(path)
+        print("\nPath", rank + 1)
+        print("Route:   ", route)
+        print("Distance:", str(dist) + " km")
 
 
-start       = input("Enter start town: ")
-destination = input("Enter destination town: ")
-top_3_paths(start, destination)
+start_town = input("Enter start town: ")
+destination_town = input("Enter destination town: ")
+top_3_paths(start_town, destination_town)

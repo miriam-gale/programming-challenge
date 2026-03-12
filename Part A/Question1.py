@@ -1,4 +1,5 @@
 # Question 1
+
 # Creates an empty set called towns
 towns = set()
 

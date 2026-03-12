@@ -2,24 +2,20 @@
 
 # Given constants from the question
 FUEL_CONSUMPTION = 8      # km per litre
-FUEL_PRICE       = 11.95  # GHS per litre
-TIME_COST        = 0.5    # GHS per minute
+FUEL_PRICE = 11.95  # GHS per litre
+TIME_COST = 0.5    # GHS per minute
 
 # Build the graph
 graph = {}
 
 with open("ghana_cities_graph_2026.txt", "r") as file:
     for line in file:
-        parts       = line.split(",")
-        source      = parts[0].strip()
-        destination = parts[1].strip()
-        distance    = int(parts[2].strip())
-        time        = int(parts[3].strip())
+        parts = line.split(",")
 
-        if source not in graph:
-            graph[source] = []
-        if destination not in graph:
-            graph[destination] = []
+        source = parts[0].strip()
+        destination = parts[1].strip()
+        distance = int(parts[2].strip())
+        time = int(parts[3].strip())
 
         graph[source].append((destination, distance, time))
         graph[destination].append((source, distance, time))
@@ -28,10 +24,16 @@ with open("ghana_cities_graph_2026.txt", "r") as file:
 # Dijkstra that works for both distance and time depending on mode
 def dijkstra(start, destination, mode):
 
-    costs    = {town: float('inf') for town in graph}
+    costs = {}
+    for town in graph:
+        costs[town] = float('inf')
     costs[start] = 0
-    previous = {town: None for town in graph}
-    queue    = [(0, start)]
+
+    previous = {}
+    for town in graph:
+        previous[town] = None
+
+    queue = [(0, start)]
 
     while queue:
         current_cost, current_town = min(queue)
@@ -41,13 +43,11 @@ def dijkstra(start, destination, mode):
             break
 
         for neighbor, dist, time in graph[current_town]:
-
             # Use distance or time as the weight depending on the mode
             if mode == "distance":
                 weight = dist
             else:
                 weight = time
-
             new_cost = current_cost + weight
 
             if new_cost < costs[neighbor]:
@@ -56,12 +56,14 @@ def dijkstra(start, destination, mode):
                 queue.append((new_cost, neighbor))
 
     # Rebuild path
-    path    = []
+    path = []
     current = destination
-    while current is not None:
+
+    while current != None:
         path.append(current)
         current = previous[current]
-    path.reverse()
+
+    path = path[::-1]
 
     return path, costs[destination]
 
@@ -95,42 +97,65 @@ def path_stats(path, stat):
 
 
 # --- Run ---
-start       = input("Enter start town: ")
+start = input("Enter start town: ")
 destination = input("Enter destination town: ")
 
 # Get both routes
 distance_path, total_distance = dijkstra(start, destination, "distance")
-time_path,     total_time     = dijkstra(start, destination, "time")
+time_path, total_time = dijkstra(start, destination, "time")
 
 # Get the missing stat for each path
-distance_path_time     = path_stats(distance_path, "time")
-time_path_distance     = path_stats(time_path,     "distance")
+distance_path_time = path_stats(distance_path, "time")
+time_path_distance = path_stats(time_path, "distance")
 
 # Calculate total cost for each route
-cost_of_distance_route = total_cost(total_distance,    distance_path_time)
-cost_of_time_route     = total_cost(time_path_distance, total_time)
+cost_of_distance_route = total_cost(total_distance, distance_path_time)
+cost_of_time_route = total_cost(time_path_distance, total_time)
 
 # Print shortest distance route
-print("\n--- Shortest Distance Route ---")
-print("Route     :", " -> ".join(distance_path))
-print("Distance  :", total_distance, "km")
-print("Time      :", distance_path_time, "minutes")
-print("Fuel Cost : GHS", round(fuel_cost(total_distance), 2))
-print("Total Cost: GHS", round(cost_of_distance_route, 2))
+route    = " -> ".join(distance_path)
+distance = str(total_distance) + " km"
+time     = str(distance_path_time) + " minutes"
+fuel     = "GHS " + str(round(fuel_cost(total_distance), 2))
+cost     = "GHS " + str(round(cost_of_distance_route, 2))
+
+print("\n=== Route for shortest distance ===")
+print("Route:     ", route)
+print("Distance:  ", distance)
+print("Time:      ", time)
+print("Fuel Cost: ", fuel)
+print("Total Cost:", cost)
 
 # Print fastest time route
-print("\n--- Fastest Time Route ---")
-print("Route     :", " -> ".join(time_path))
-print("Distance  :", time_path_distance, "km")
-print("Time      :", total_time, "minutes")
-print("Fuel Cost : GHS", round(fuel_cost(time_path_distance), 2))
-print("Total Cost: GHS", round(cost_of_time_route, 2))
+route2    = " -> ".join(time_path)
+distance2 = str(time_path_distance) + " km"
+time2     = str(total_time) + " minutes"
+fuel2     = "GHS " + str(round(fuel_cost(time_path_distance), 2))
+cost2     = "GHS " + str(round(cost_of_time_route, 2))
+
+print("\n=== Fastest Time Route ===")
+print("Route:     ", route2)
+print("Distance:  ", distance2)
+print("Time:      ", time2)
+print("Fuel Cost: ", fuel2)
+print("Total Cost:", cost2)
 
 # Compare and recommend
-print("\n--- RECOMMENDATION ---")
+print("\n=== Recommendation System ===")
+
 if cost_of_distance_route < cost_of_time_route:
+    cheaper = round(cost_of_distance_route, 2)
+    pricier = round(cost_of_time_route, 2)
     print("Take the Shortest Distance Route")
-    print("Reason: It costs GHS", round(cost_of_distance_route, 2), "which is cheaper than GHS", round(cost_of_time_route, 2))
-else:
+    print("It costs GHS", cheaper, "which is cheaper than GHS", pricier)
+
+elif cost_of_time_route < cost_of_distance_route:
+    cheaper = round(cost_of_time_route, 2)
+    pricier = round(cost_of_distance_route, 2)
     print("Take the Fastest Time Route")
-    print("Reason: It costs GHS", round(cost_of_time_route, 2), "which is cheaper than GHS", round(cost_of_distance_route, 2))
+    print("It costs GHS", cheaper, "which is cheaper than GHS", pricier)
+
+else:
+    same = round(cost_of_distance_route, 2)
+    print("Both routes cost the same at GHS", same)
+    print("Recommendation is to take the Fastest Time Route to save time")
