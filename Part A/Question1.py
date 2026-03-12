@@ -1,7 +1,8 @@
-#Creates an empty set called towns
+# Question 1
+# Creates an empty set called towns
 towns = set()
 
-#Creates a counter called edges starting from zero. 
+# Creates a counter called edges starting from zero. 
 edges = 0
 
 

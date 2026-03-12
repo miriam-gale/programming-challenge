@@ -1,68 +1,68 @@
-
-#Imports heap queue or priority queue algorithm
+# Question 4
+# Imports heap queue or priority queue algorithm
 import heapq
 
-#Creates an empty dictionary called graph
+# Creates an empty dictionary called graph
 graph = {}
 
-#Open the text file "ghana_cities_graph_2026.txt"
+# Open the text file "ghana_cities_graph_2026.txt"
 with open("ghana_cities_graph_2026.txt", "r") as file:
-    #loops through each line in  the text file
+    # loops through each line in  the text file
     for line in file:
         
-        #Split each line at a comma and 4 pieces
+        # Split each line at a comma and 4 pieces
         parts = line.split(",")
         source = parts[0].strip()
         destination = parts[1].strip()
         distance = int(parts[2].strip())
         time = int(parts[3].strip())
 
-        #Creates a space for each town if it does not exist yet
+        # Creates a space for each town if it does not exist yet
         if source not in graph:
             graph[source] = []
         if destination not in graph:
             graph[destination] = []
 
-        #Appends the distance, time and neighbour to the space
+        # Appends the distance, time and neighbour to the space
         graph[source].append((destination, distance, time))
         graph[destination].append((source, distance, time))
 
-#Defines a function called dijkstra with parameters: graph, start, and destination
+# Defines a function called dijkstra with parameters: graph, start, and destination
 def dijkstra(graph, start, destination):
     
-    #Creates an empty dictionary called distance
+    # Creates an empty dictionary called distance
     distances = {}
 
-    #Checks for each town in the graph
+    # Checks for each town in the graph
     for town in graph:
         
-        #Set all the distances of the town to infinity except for the begining town which is 0
+        # Set all the distances of the town to infinity except for the begining town which is 0
         distances[town] = float('inf')
     distances[start] = 0
 
-    #Creates our list with the begining town at distance 0
+    # Creates our list with the begining town at distance 0
     queue = [(0, start)]
 
-    #Creates a tracker which records how we got to each town. None begins with because we have not set off yet
+    # Creates a tracker which records how we got to each town. None begins with because we have not set off yet
     previous = {town: None for town in graph}
 
-    #Starts a loop
+    # Starts a loop
     while queue:
         
-        #Picks the closest town from the queue
+        # Picks the closest town from the queue
         current_distance, current_town = heapq.heappop(queue)
 
-        #If we get to the town with the shortest distance , terminate the loop
+        # If we get to the town with the shortest distance , terminate the loop
         if current_town == destination:
             break
         
-        #Checks the neighbour of the current town
+        # Checks the neighbour of the current town
         for neighbor, distance, time in graph[current_town]:
-            
-            #Calculates how far to reach the current town
+             
+            # Calculates how far to reach the current town
             new_distance = current_distance + distance
 
-            #If the new distance is shorter than what we initially knew, record it to the tracker and add it to the list
+            # If the new distance is shorter than what we initially knew, record it to the tracker and add it to the list
 
             if new_distance < distances[neighbor]:
                 distances[neighbor] = new_distance
