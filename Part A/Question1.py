@@ -1,9 +1,9 @@
 # Question 1
 
-# Creates an empty set called towns
+# An empty set called towns
 towns = set()
 
-# Creates a counter called edges starting from zero. 
+# A counter called edges starting from zero. 
 edges = 0
 
 
@@ -30,5 +30,3 @@ with open("ghana_cities_graph_2026.txt", "r") as file:
     #prints the final counts
   print("Total towns:", len(towns))
   print("Total roads:", edges)
-
-
