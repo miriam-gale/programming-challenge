@@ -95,4 +95,4 @@ Accra, Kumasi, 250, 240
 
 ---
 
-**Author:** _Your Name Here_
+**Author:** _Miriam Gale & Martha Afful_
